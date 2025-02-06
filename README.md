@@ -1,2 +1,2 @@
 # simplebank
-A fan project for practicing
+A fan project for practicing go
