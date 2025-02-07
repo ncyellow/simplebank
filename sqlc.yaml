@@ -1,0 +1,16 @@
+version: "2"
+sql:
+  - engine: "postgresql"  # Database engine (can be "mysql", "sqlite", etc.)
+    schema: "db/migration/*.sql"  # Path to your schema file
+    queries: "db/query/*.sql"  # Path to your SQL queries
+    gen:
+      go:  # Language for code generation
+        package: "db"  # Package name for generated code
+        out: "internal/db"  # Output directory for generated code
+        sql_package: "pgx/v5"  # SQL driver package (can be "database/sql" or others)
+        emit_prepared_queries: false
+        emit_interface: false
+        emit_exact_table_names: false
+        emit_json_tags: true  # Enable JSON struct tags
+    rules:
+      - sqlc/db-prepare
