@@ -21,7 +21,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	// conn, err := pgx.Connect(context.Background(), dbSource)
 	var err error
 	testDB, err = sql.Open(dbDriver, dbSource)
 	if err != nil {
