@@ -8,7 +8,7 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
-	store := NewStore(testDB)
+	store := testStore
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
@@ -69,7 +69,60 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// TODO: check account balance
+		// check account balance
 
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+
+		account1, err = store.GetAccount(context.Background(), fromAccount.ID)
+		require.NoError(t, err)
+
+		account2, err = store.GetAccount(context.Background(), toAccount.ID)
+		require.NoError(t, err)
 	}
+}
+
+func TestTransferTxDeadlocks(t *testing.T) {
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
+
+	// n := 20
+	n := 2
+	amount := 10
+
+	errs := make(chan error)
+
+	for i := 0; i < n; i++ {
+		fromAccount := account1.ID
+		toAccount := account2.ID
+		if i%2 == 1 {
+			fromAccount, toAccount = toAccount, fromAccount
+		}
+		go func() {
+			_, err := testStore.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: fromAccount,
+				ToAccountID:   toAccount,
+				Amount:        int64(amount),
+			})
+			require.NoError(t, err)
+			errs <- err
+		}()
+	}
+
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+	}
+
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, account1.Balance, updatedAccount1.Balance)
+	require.Equal(t, account2.Balance, updatedAccount2.Balance)
 }

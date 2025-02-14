@@ -18,6 +18,7 @@ const (
 var (
 	testQueries *Queries
 	testDB      *sql.DB
+	testStore   *Store
 )
 
 func TestMain(m *testing.M) {
@@ -28,5 +29,6 @@ func TestMain(m *testing.M) {
 	}
 
 	testQueries = New(testDB)
+	testStore = NewStore(testDB)
 	os.Exit(m.Run())
 }
